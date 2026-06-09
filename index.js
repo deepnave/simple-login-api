@@ -1,14 +1,14 @@
-import express from "express";
 import dotenv from "dotenv";
-
 dotenv.config();
+import express from "express";
+import db from "./config/db.js"
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 // Routers
 
 app.get('/', (req, res) => {
-    res.json({message: "crucial"})
+    res.json({message: "Hey there! it works"})
 })
 
 // app running
