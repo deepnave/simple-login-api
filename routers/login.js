@@ -1,6 +1,9 @@
+import dotenv from "dotenv";
+dotenv.config();
 import { Router } from "express";
 import pool from "./../config/db.js";
 import {compare} from "bcrypt";
+import jwt from "jsonwebtoken";
 
 const login = Router();
 
@@ -15,10 +18,17 @@ login.post("/", async (req, res) => {
         const user = (await pool.query(query, [username])).rows[0];
         const result = await compare(password, user.hash_pass);
         if(result){
-            return res.status(200).json({message: "user log in successfully!", ...{username:user.username}})
+            const payload = {
+                username:user.username,
+                id:user.id
+            }
+            const token = jwt.sign(payload, process.env.JWT_SECRET, {expiresIn:"1h"});
+            return res.status(200).json({message: "user log in successfully!", token});
         }
+        return res.status(401).json({message: "failed to login"});
+
     } catch (error) {
-        return res.status(409).json({message: error})
+        return res.status(409).json({message: error});
     }
 })
 
