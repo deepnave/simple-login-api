@@ -1,5 +1,3 @@
-import dotenv from "dotenv";
-dotenv.config();
 import { Router } from "express";
 import {v7 as uuidv7} from "uuid";
 import {hash} from "bcrypt";
@@ -15,20 +13,20 @@ register.post('/',async (req, res) =>{
         const usernameRegex = /^[a-z](?:[a-z0-9_]*[a-z0-9])?$/
         const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
         if(!usernameRegex.test(username)){
-            res.status(201).json({message: "username mustn\'t start with number or underscore or end with underscore"})
+            return res.status(409).json({message: "username mustn\'t start with number or underscore or end with underscore"});
         }
         if(!emailRegex.test(email)){
-            res.status(201).json({message: "email must be like: name@example.com"})
+            return res.status(409).json({message: "email must be like: name@example.com"});
         }
-        if(password.length < 7 || password.length > 21){
-            res.status(201).json({message: "password length must be at least 8, and max 20"})
+        if(password.length < 8 || password.length > 20){
+            return res.status(409).json({message: "password length must be at least 8, and max 20"});
         }
         const userId = uuidv7();
         const hashPass = await hash(password, saltRound);
         const query = `
         INSERT INTO users_simple (id, username, email, hash_pass)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, username, email
+        VALUES ($1, $2, $3, $4)
+        RETURNING id, username, email, created_at
         `
         const values = [userId, username, email, hashPass];
         const result = await pool.query(query, values);
@@ -37,11 +35,17 @@ register.post('/',async (req, res) =>{
             user: result.rows[0]
         });
     } catch (error) {
-        if(error.code === "23505")
-            res.status(409).json({message: "wrong email or password"})
-    }
-    
-    res.json({message:"register router.", username})
+        const detail = error.detail || "";
+        if(error.code === "23505"){
+            if (detail.includes("username")){
+                return res.status(409).json({message: "username already exists"});
+            } else if (detail.includes("email")){
+                return res.status(409).json({message: "email already registered."});
+            }
+            return res.status(409).json({message: "uniqueness error"});
+        }
+        return res.status(409).json({message: e.detail});
+    }  
 })
 
 export default register;
