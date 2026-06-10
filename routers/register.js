@@ -26,11 +26,11 @@ register.post('/',async (req, res) =>{
         const userId = uuidv7();
         const hashPass = await hash(password, saltRound);
         const query = `
-        INSERT INTO users_simple (id, username, email, hash_pass, created_at)
+        INSERT INTO users_simple (id, username, email, hash_pass)
         VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, username, email, created_at
+        RETURNING id, username, email
         `
-        const values = [userId, username, email, hashPass,(new Date().toLocaleDateString('en-CA')).toString().split('T')[0]];
+        const values = [userId, username, email, hashPass];
         const result = await pool.query(query, values);
         return res.status(201).json({
             message: "User registered successfully!",
