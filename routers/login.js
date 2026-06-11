@@ -19,7 +19,6 @@ login.post("/", async (req, res) => {
         const result = await compare(password, user.hash_pass);
         if(result){
             const payload = {
-                username:user.username,
                 id:user.id
             }
             const token = jwt.sign(payload, process.env.JWT_SECRET, {expiresIn:"1h"});

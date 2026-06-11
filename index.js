@@ -19,7 +19,7 @@ app.get('/', (req, res) => {
 })
 
 app.get('/dashboard', authinticateToken, (req, res) => {
-    res.json({message:"congrats, you're successfully loggedIn."})
+    return res.json({message:"congrats, you're successfully loggedIn."})
 })
 
 // app running
